@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.know.dao.CommentDao">
+    <resultMap id="commentByPostIdRest" type="com.example.know.entity.CommentAndAuthor">
+        <id column="comment_id" property="commentId"/>
+        <result column="commentable_id" property="commentableId"/>
+        <result column="commentable_type" property="commentableType"/>
+        <result column="content" property="content"/>
+        <result column="create_time" property="createTime"/>
+        <association property="user" column="comment_by" javaType="com.example.know.entity.User"
+                     resultMap="UserResult"/>
+    </resultMap>
+    <resultMap id="UserResult" type="com.example.know.entity.User">
+        <id property="userId" column="user_id"/>
+        <result property="userName" column="user_name"/>
+        <result property="nickName" column="nick_name"/>
+        <result property="userType" column="user_type"/>
+        <result property="email" column="email"/>
+        <result property="sex" column="sex"/>
+        <result property="avator" column="avator"/>
+        <result property="status" column="status"/>
+        <result property="bookCurrency" column="book_currency"/>
+        <result property="createIp" column="create_ip"/>
+        <result property="createTime" column="create_time"/>
+        <result property="remark" column="remark"/>
+    </resultMap>
+
+    <select id="getCommentByPostId" resultMap="commentByPostIdRest">
+        select c.comment_id,c.commentable_id,c.commentable_type,
+        c.content,c.create_time,u.user_id,u.nick_name,u.avator,
+        u.status,u.sex,u.user_type
+        from comment c , user u
+        where c.commentable_id = #{postId} and c.commentable_type = '0' and c.comment_by = u.user_id
+        order by c.create_time
+    </select>
+
+    <select id="getCommentByComment" resultMap="commentByPostIdRest">
+        select c.comment_id,c.commentable_id,c.commentable_type,
+        c.content,c.create_time,u.user_id,u.nick_name,u.avator,
+        u.status,u.sex,u.user_type
+        from comment c , user u
+        where c.commentable_id = #{commentId} and c.commentable_type = '1' and c.comment_by = u.user_id
+        order by c.create_time
+    </select>
+</mapper>

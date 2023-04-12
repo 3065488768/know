@@ -1,0 +1,115 @@
+server:
+  port: 9527
+  max-http-header-size: 2MB
+  servlet:
+    context-path: /api
+spring:
+  servlet:
+    multipart:
+      enabled: true
+      max-file-size: 100MB
+      max-request-size: 200MB
+      location: E:/
+  devtools:
+    restart:
+      enabled: true
+      additional-paths: src/main
+  freemarker:
+    cache: false
+  mail:
+    host: smtp.qq.com
+    username: 3065488768@qq.com
+    password: bxxqesrobkocdebj
+    port: 587
+    default-encoding: UTF-8
+    from: 3065488768@qq.com
+  redis:
+    database: 0
+    host: localhost
+    port: 6379
+    password:
+    lettuce:
+      pool:
+        max-idle: 8
+        max-wait: -1ms
+        min-idle: 0
+        max-active: 8
+  datasource:
+    url: jdbc:mysql://localhost:3306/forum?useUnicode=true&characterEncoding=utf-8&useSSL=true&serverTimezone=Asia/Shanghai&serverTimezone=GMT
+    username: root
+    password: root
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    #    数据库连接池类别
+    type: com.alibaba.druid.pool.DruidDataSource
+    druid:
+      #      初始化大小
+      initial-size: 5
+      #      最小连接数
+      min-idle: 10
+      #      最大连接数
+      max-active: 20
+      #      最长等待时间
+      max-wait: 60000
+      #      一个连接在池中最小的生存的时间
+      min-evictable-idle-time-millis: 300000
+      #      多久进行一次检测需要关闭的空闲连接
+      time-between-eviction-runs-millis: 60000
+      filter:
+        #        扩展插件
+        stat:
+          #          是否开启FilterStat,默认true
+          enabled: true
+          #          是否开启慢SQL记录,默认false
+          log-slow-sql: true
+          #          慢SQL标准
+          slow-sql-millis: 5000
+          #          合并多个连接池的监控数据，默认false
+          merge-sql: false
+        #        日志
+        log4j:
+        #          防火墙（防止SQL注入）
+        wall:
+      #          检查连接是否是有效的SQL语句
+      validation-query: SELECT 1
+      #      申请连接时执行validationQuery家呢连接是否有效（影响性能）
+      test-on-borrow: false
+      #      归还连接时执行validationQuery家呢连接是否有效（影响性能）
+      test-on-return: false
+      #      申请连接时如果空闲时间大于timeBetweenEvictionRunsMillis，执行validationQuery检测连接是否有效，默认false，建议开启，不影响性能
+      test-while-idle: true
+      stat-view-servlet:
+        #      是否开启 StatViewServlet
+        enabled: true
+        #      访问监控页面 白名单，默认127.0.0.1
+        allow:
+        #        黑名单
+        deny:
+        login-username: admin
+        login-password: 123456
+      max-pool-prepared-statement-per-connection-size: 2
+      connect-properties:
+        druid:
+          stat:
+            mergeSql=true;druid:
+              stat:
+                slowSqlMillis=5000:
+      pool-prepared-statements: true
+      filters:
+  security:
+    user:
+      password: "@123456"
+      name: "user"
+logging:
+  level:
+    web: debug
+    root: debug
+    sql: debug
+mybatis:
+  mapper-locations: "mapper/*Mapper.xml"
+
+pagehelper:
+  helperDialect: mysql
+  reasonable: true
+  supportMethodsArguments: true
+  params: count=countSql
+

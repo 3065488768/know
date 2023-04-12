@@ -1,0 +1,12 @@
+================================
+ __                            =
+|  | __ ____   ______  _  __   =
+|  |/ //    \ /  _ \ \/ \/ /   =
+|    <|   |  (  <_> )     /    =
+|__|_ \___|  /\____/ \/\_/     =
+     \/    \/                  =
+================================
+${AnsiColor.BRIGHT_GREEN}
+Application Name: ${application.title}
+Application Version: ${application.formatted-version}
+Spring Boot Version: ${spring-boot.formatted-version}

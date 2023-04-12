@@ -1,0 +1,166 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.know.dao.SimplePostDao">
+    <resultMap id="postResult" type="com.example.know.entity.Post">
+        <id property="postId" column="post_id"/>
+        <result property="postTitle" column="post_title"/>
+        <result property="postContent" column="post_content"/>
+        <result property="plateId" column="plate_id"/>
+        <result property="postType" column="post_type"/>
+        <result property="status" column="status"/>
+        <result property="degreeOfHeat" column="heat_degree"/>
+        <result property="createBy" column="create_by"/>
+        <result property="createTime" column="create_time"/>
+        <result property="auditTime" column="update_time"/>
+    </resultMap>
+
+    <resultMap id="postAndAuthorResult" type="com.example.know.entity.PostAndAuthor">
+        <id property="postId" column="post_id"/>
+        <result property="postTitle" column="post_title"/>
+        <result property="postContent" column="post_content"/>
+        <result property="plateId" column="plate_id"/>
+        <result property="postType" column="post_type"/>
+        <result property="status" column="status"/>
+        <result property="degreeOfHeat" column="heat_degree"/>
+        <result property="createBy" column="create_by"/>
+        <result property="createTime" column="create_time"/>
+        <result property="auditTime" column="update_time"/>
+        <result property="nickName" column="nick_name"/>
+    </resultMap>
+
+    <!--    <resultMap id="exhibitionPostResult" type="com.example.know.entity.ExhibitionPost">-->
+    <!--        <id property="postId" column="post_id"></id>-->
+    <!--        <result property="postTitle" column="post_title"/>-->
+    <!--        <result property="plateName" column="plate_name"/>-->
+    <!--        <result property="nickName" column="nick_name"/>-->
+    <!--        <result property="avator" column="avator"/>-->
+    <!--        <result property="commentNumber" column="comment_number"/>-->
+    <!--        <result property="accessNumber" column="access_number"/>-->
+    <!--        <result property="createTime" column="create_time"/>-->
+    <!--        <result property="heatDegree" column="heat_degree"/>-->
+    <!--        <result property="userId" column="user_id"/>-->
+    <!--    </resultMap>-->
+    <select id="getFuzzySearchPost" resultType="java.util.Map">
+        select p.post_id postId,p.post_title postTitle,p.post_type postType,pl.plate_name plateName,u.nick_name
+        createBy,u.avator,
+        ifnull(c.comment_number,0) commentNumber,ifnull(a.access_number,0) accessNumber,p.create_time
+        createTime,u.user_id userId,p.heat_degree heatDegree
+        from post p left join (
+        select post_id,count(*) access_number
+        from access a
+        group by post_id
+        ) a on p.post_id = a.post_id left join (
+        select commentable_id,count(*) comment_number
+        from comment
+        where commentable_type = '0'
+        group by commentable_id
+        ) c on p.post_id = c.commentable_id left join
+        user u on p.create_by = u.user_id left join
+        plate pl on p.plate_id = pl.plate_id
+        where p.status = '0'
+        <if test="plateId != null and plateId.length != 0">
+            and p.plate_id in
+            <foreach collection="plateId" item="id" open="(" separator="," close=")">
+                #{id}
+            </foreach>
+        </if>
+        <if test="datetimeStart != null and datetimeEnd != null and datetimeStart != '' and datetimeEnd != ''">
+            and DATE_FORMAT(create_time, '%Y-%m-%d %H-%m-%s')>= DATE_FORMAT(#{datetimeStart}, '%Y-%m-%d %H-%m-%s')
+            and DATE_FORMAT(#{datetimeEnd}, '%Y-%m-%d %H-%m-%s') >= DATE_FORMAT(create_time, '%Y-%m-%d %H-%m-%s')
+        </if>
+
+
+        <if test="postType == '0' || postType == '1'">
+            and p.post_type = #{postType}
+        </if>
+
+        <choose>
+            <when test="type == 1">
+                and p.post_title like concat('%',#{parameter,jdbcType=VARCHAR},'%')
+            </when>
+            <when test="type == 2">
+                and p.post_content like concat('%',#{parameter,jdbcType=VARCHAR},'%')
+            </when>
+            <when test="type == 3">
+                and CONCAT(p.post_title,p.post_content) like concat('%',#{parameter,jdbcType=VARCHAR},'%')
+            </when>
+            <otherwise></otherwise>
+        </choose>
+        order by p.post_type = '3' desc
+        <choose>
+            <when test="rankType == 3">
+                ,char_length(p.post_title) asc,char_length(p.post_content) asc
+            </when>
+            <when test="rankType == 1">
+                ,p.create_time desc
+            </when>
+            <when test="rankType == 2">
+                ,p.heat_degree desc
+            </when>
+        </choose>
+    </select>
+
+    <select id="getSimplePostOfLatestComments" resultType="java.util.Map">
+        select p.post_id postId,p.post_title postTitle,p.status,p.plate_id plateId,p.post_type postType,p.heat_degree
+        degreeOfHeat,
+        p.create_by createBy,p.create_time createTime,p.update_time AuditTime,c.create_time commentTime
+        from post p right join comment c on p.post_id = c.commentable_id
+        where p.status = '0' and c.commentable_type = '0'
+        order by c.create_time desc
+    </select>
+
+    <select id="getSimplePostAndAuthor" resultMap="postAndAuthorResult" parameterType="java.lang.Integer">
+        select p.post_id, p.post_title, p.plate_id, p.post_type, p.status, p.heat_degree, p.create_by, p.create_time,
+        p.update_time, u.nick_name
+        from post p left join user u on p.create_by = u.user_id
+        where p.status = '0'
+        <choose>
+            <when test="flag == 0">
+                order by p.create_time
+            </when>
+            <when test="flag == 1">
+                and TO_DAYS(NOW()) - TO_DAYS(p.create_time) = 3
+                order by p.heat_degree
+            </when>
+            <when test="flag == 2">
+                and TO_DAYS(NOW()) - TO_DAYS(p.create_time) = 7
+                order by p.heat_degree
+            </when>
+            <when test="flag == 3">
+                and post_type = '1'
+                order by p.create_time
+            </when>
+        </choose>
+        limit 0,5
+    </select>
+
+    <update id="batchModification" parameterType="java.lang.Integer">
+        update post set status = #{status}
+        where post_id in
+        <foreach collection="array" item="postId" open="(" separator="," close=")">
+            #{postId}
+        </foreach>
+    </update>
+
+    <select id="postIdByBookTypeId" resultType="java.util.Map">
+        select
+        p.post_id postId,p.post_title postTitle,u.nick_name createBy,p.create_time createTime,
+        ifnull(c.collectionCount,0) collectionCount,ifnull(l.likeCount,0) likeCount,ifnull(a.accessCount,0) accessCount
+        from post p right join (
+        select p1.post_id
+        from book b,post p1
+        where p1.book_id = b.book_id and b.book_type_id in
+        <foreach collection="array" item="bookTypeId" open="(" separator="," close=")">
+            #{bookTypeId}
+        </foreach>)bp on bp.post_id = p.post_id
+        left join user u on p.create_by = u.user_id
+        left join (select post_id,access_id,count(*) accessCount from access group by post_id) a on a.post_id =
+        p.post_id
+        left join (select liked_id,like_id,count(*) likeCount from like_table where like_type = '0' group by liked_id) l
+        on l.liked_id = p.post_id
+        left join (select collected_id,collection_id,count(*) collectionCount from collection where collection_type =
+        '0' group by collected_id) c on c.collected_id = p.post_id
+    </select>
+</mapper>

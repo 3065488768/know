@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.know.dao.UserDao">
+    <resultMap id="UserResult" type="com.example.know.entity.User">
+        <id property="userId" column="user_id"/>
+        <result property="userName" column="user_name"/>
+        <result property="nickName" column="nick_name"/>
+        <result property="userType" column="user_type"/>
+        <result property="email" column="email"/>
+        <result property="sex" column="sex"/>
+        <result property="avator" column="avator"/>
+        <result property="salt" column="salt"/>
+        <result property="status" column="status"/>
+        <result property="bookCurrency" column="book_currency"/>
+        <result property="createIp" column="create_ip"/>
+        <result property="createTime" column="create_time"/>
+        <result property="remark" column="remark"/>
+    </resultMap>
+
+    <sql id="selectTemplate">
+        select user_id,user_name,nick_name,user_type,password,email,sex,avator,salt,status,book_currency,
+        create_ip,create_time,remark
+    </sql>
+
+    <delete id="deleteUser" parameterType="java.lang.Integer">
+        update user set status = '2' where user_id = #{userId}
+    </delete>
+
+    <delete id="deleteUsers" parameterType="java.lang.Integer">
+        update user set status = '2' where user_id in
+        <foreach collection="array" item="userId" open="(" separator="," close=")">
+            #{userId}
+        </foreach>
+    </delete>
+
+    <select id="selectOfUserId" parameterType="java.lang.Integer" resultMap="UserResult">
+        <include refid="selectTemplate"></include>
+        from user
+        where user_id = #{userId}
+
+    </select>
+
+    <select id="selectOfUserName" parameterType="java.lang.String" resultMap="UserResult">
+        <include refid="selectTemplate"></include>
+        from user
+        where user_name = #{userName}
+    </select>
+
+    <select id="checkOfUserNameUnique" parameterType="java.lang.String" resultMap="UserResult">
+        select user_name
+        from user
+        where user_name = #{userName}
+        limit 1
+    </select>
+
+    <select id="checkOfNickNameUnique" parameterType="java.lang.String" resultMap="UserResult">
+        select nick_name
+        from user
+        where nick_name = #{nickName}
+        limit 1
+    </select>
+
+    <select id="checkOfEmailUnique" parameterType="java.lang.String" resultMap="UserResult">
+        select email
+        from user
+        where email = #{email}
+        limit 1
+    </select>
+
+    <select id="userOfRanking" resultType="java.util.Map">
+        select u.user_id userId,u.nick_name nickName,sum(po.collectedNumber)*3+sum(po.likedNmber)*2+sum(po.commentNmber)
+        scoreNumber
+        from user u left join
+        (select p.post_id,p.create_by,count(cl.collected_id) collectedNumber,count(l.liked_id)
+        likedNmber,count(cm.commentable_id) commentNmber
+        from post p left join
+        (
+        select collected_id
+        from collection
+        where collection_type = '0'
+        ) cl on p.post_id = cl.collected_id
+        left join
+        ( select liked_id
+        from like_table
+        where like_type = '0') l on p.post_id = l.liked_id
+        left join
+        (select commentable_id
+        from comment
+        where commentable_type = '0') cm on p.post_id = cm.commentable_id
+        where status = '0'
+        group by p.post_id) po on u.user_id = po.create_by
+        where u.status = '0'
+        group by u.nick_name
+        order by sum(po.collectedNumber)*3+sum(po.likedNmber)*2+sum(po.commentNmber) desc
+        limit 0,5
+    </select>
+</mapper>

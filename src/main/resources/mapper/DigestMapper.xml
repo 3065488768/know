@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.know.dao.DigestDao">
+    <resultMap id="DigestResult" type="com.example.know.entity.Digest">
+        <id property="digestId" column="digest_id"/>
+        <result property="digestContent" column="digest_content"/>
+        <result property="bookId" column="book_id"/>
+        <result property="authorId" column="author_id"/>
+        <result property="likes" column="likes"/>
+        <result property="createTime" column="create_time"/>
+    </resultMap>
+    <resultMap id="bookResult" type="com.example.know.entity.Book">
+        <id property="bookId" column="book_id"/>
+        <result property="bookName" column="book_name"/>
+        <result property="bookTypeId" column="book_type_id"/>
+        <result property="status" column="status"/>
+        <result property="author" column="author"/>
+        <result property="contributor" column="contributor"/>
+        <result property="imgUrl" column="img_url"/>
+        <result property="heatDegree" column="heat_degree"/>
+        <result property="createTime" column="create_time"/>
+        <result property="updateTime" column="update_time"/>
+        <result property="remark" column="remark"/>
+    </resultMap>
+    <select id="getDigestAndBook" resultType="java.util.Map">
+        select d.digest_id,d.digest_content,d.create_time,b.book_name,u.nick_name,ifnull(l.likeNumber,0) likeNumber
+        from digest d left join book b on d.book_id = b.book_id left join user u on d.author_id = u.user_id left join
+        (select liked_id, count(*) likeNumber
+        from like_table
+        where like_type = '2'
+        group by liked_id) l on l.liked_id = digest_id
+        group by b.book_name
+        order by likeNumber desc
+    </select>
+</mapper>

@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.know.dao.RolePermissionDao">
+
+    <resultMap id="RoleAndPermission" type="java.util.Map">
+        <id property="pid" column="pid"/>
+        <result property="permissionName" column="permission_name"/>
+        <result property="url" column="url"/>
+        <result property="createTime" column="create_time"/>
+    </resultMap>
+
+    <select id="getRoleAndPermission" parameterType="java.lang.Integer" resultMap="RoleAndPermission">
+        select p.pid,p.permission_name,p.url,p.create_time
+        from role_permission rp left join permission p on rp.pid = p.pid
+        where rp.rid = #{roleId}
+    </select>
+</mapper>

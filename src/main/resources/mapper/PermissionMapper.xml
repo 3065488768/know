@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.know.dao.PermissionDao">
+    <select id="permissionByUserId" parameterType="java.lang.Integer" resultType="com.example.know.entity.Permission">
+        select permission_name,url
+        from permission p right join
+        (select pid
+        from role_permission rp right join
+        (select rid
+        from users_role
+        where uid = #{userId}) ur on ur.rid = rp.rid) pr on pr.pid = p.pid;
+    </select>
+</mapper>

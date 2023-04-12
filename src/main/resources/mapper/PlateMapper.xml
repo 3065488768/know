@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.know.dao.PlateDao">
+    <select id="getPlateInformation" resultType="java.util.Map">
+        select p1.plate_id plateId, p1.plate_name plateName, p1.img_url imgUrl, p1.create_by createBy, p1.create_time
+        createTime, p1.remark, ifnull(p1.postInPlate,0) postInPlate,ifnull(p2.postInPlateByToday,0) postInPlateByToday
+        from
+        (select p.plate_id, p.plate_name, p.img_url, p.create_by, p.create_time, p.remark,count(p2.post_id) postInPlate
+        from plate p left join post p2 on p.plate_id = p2.plate_id
+        where p.status = '0' and p2.status = '0'
+        group by p.plate_id) p1
+        left join
+        (select p1.plate_id, count(p2.post_id) postInPlateByToday
+        from plate p1 left join post p2 on p1.plate_id = p2.plate_id
+        where p1.status = '0' and p2.status = '0' and DATEDIFF(p2.create_time,NOW())=0
+        group by p1.plate_id) p2 on p1.plate_id = p2.plate_id
+        order by p1.create_time desc
+    </select>
+
+    <select id="getPlateByRanking" resultType="java.util.Map">
+        select pl.plate_id plateId,pl.plate_name plateName,sum(p.heat_degree) heatDegree,
+        pl.img_url imgUrl,pl.create_time createTime
+        from plate pl left join post p on pl.plate_id = p.plate_id
+        where p.status = '0' and pl.status = '0'
+        group by pl.plate_id
+        order by sum(p.heat_degree) desc
+    </select>
+</mapper>

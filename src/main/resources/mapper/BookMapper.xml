@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.know.dao.BookDao">
+    <select id="getBookByLikeOrder" resultType="java.util.Map">
+        select book_id bookId,book_name bookName,book_type_id bookTypeId,img_url imgUrl,author,
+        book.create_time createTime,ifnull(l.likeNumber,0) likeNumber
+        from
+        (
+        select liked_id,count(*) likeNumber
+        from like_table
+        where like_type = '1'
+        group by liked_id
+        ) l right join book on book_id = l.liked_id
+        where book.status = '0'
+        order by l.likeNumber desc
+        limit 12
+    </select>
+
+    <select id="getBookByCollectionOrder" resultType="java.util.Map">
+        select book_id bookId,book_name bookName,book_type_id bookTypeId,img_url imgUrl,book.create_time
+        createTime,author,
+        ifnull(c.collectionNumber,0) collectionNumber
+        from
+        (
+        select count(collected_id) collectionNumber,collected_id
+        from collection
+        where collection_type = '1'
+        group by collected_id
+        ) c right join book on book_id = c.collected_id
+        where book.status = '0'
+        order by c.collectionNumber desc
+        limit 12
+    </select>
+
+    <select id="getBookByExpectOrder" resultType="java.util.Map">
+        select b.book_id bookId, b.book_name bookName, b.book_type_id bookTypeId
+        , b.status,img_url imgUrl, b.author, b.contributor, b.img_url imgUrl,
+        b.heat_degree heatDegree, b.create_time createTime, b.update_time updateTime, b.remark
+        from book b left join
+        (
+        select book_id,count(expect_id) expectNumber
+        from expect
+        where status = '0'
+        group by book_id
+        ) e on e.book_id = b.book_id
+        where b.status = '2'
+        order by e.expectNumber desc
+    </select>
+
+    <select id="getBookClassification" resultType="java.util.Map">
+        select bt.book_type_name bookTypeName,group_concat(b.book_name SEPARATOR ',') bookNames,group_concat(b.book_id
+        SEPARATOR ',') bookIds
+        from book b join book_type bt on b.book_type_id = bt.book_type_id
+        where b.status != 3
+        group by bt.book_type_name
+    </select>
+
+    <select id="expectBookAndCount" resultType="java.util.Map">
+        select b.book_id bookId,b.book_name bookName,IFNULL(count(expect_id),0) expectCount
+        from book b left join expect e on b.book_id = e.book_id
+        where b.status = 2
+        group by b.book_id;
+    </select>
+</mapper>
