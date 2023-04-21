@@ -285,11 +285,11 @@ public class AdminController {
     }
 
     @PostMapping("/updatePostStatus")
-    public AjaxResult updatePostStatus(int postId, int status, int reasonType, String reasonContent) {
+    public AjaxResult updatePostStatus(int postId, int status, String reasonType, String reasonContent) {
         if (status >= 0 && status <= 4) {
             postService.auditSucceeded(postId, status);
         } else if (status < 0) {
-            postService.auditFailed(postId, reasonType, reasonContent);
+            postService.auditFailed(postId, Integer.parseInt(reasonType), reasonContent);
         } else if (status > 0) {
             return AjaxResult.error();
         }

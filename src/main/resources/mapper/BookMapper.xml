@@ -42,7 +42,7 @@
         (
         select book_id,count(expect_id) expectNumber
         from expect
-        where status = '0'
+--         where status = '0'
         group by book_id
         ) e on e.book_id = b.book_id
         where b.status = '2'
@@ -53,14 +53,14 @@
         select bt.book_type_name bookTypeName,group_concat(b.book_name SEPARATOR ',') bookNames,group_concat(b.book_id
         SEPARATOR ',') bookIds
         from book b join book_type bt on b.book_type_id = bt.book_type_id
-        where b.status != 3
+        where b.status != '3'
         group by bt.book_type_name
     </select>
 
     <select id="expectBookAndCount" resultType="java.util.Map">
         select b.book_id bookId,b.book_name bookName,IFNULL(count(expect_id),0) expectCount
         from book b left join expect e on b.book_id = e.book_id
-        where b.status = 2
+        where b.status = '2'
         group by b.book_id;
     </select>
 </mapper>
